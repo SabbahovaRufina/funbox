@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><title>Player</title>
+<style>
+  .hidden { display: none; }
+  #welcome { text-align: center; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<!-- Экран входа -->
+<div id="join-screen">
+  <h1>Игрок</h1>
+  <input id="name" placeholder="Имя">
+  <input id="code" placeholder="Код лобби">
+  <button id="join">Войти</button>
+  <p id="error" style="color:red"></p>
+</div>
+
+<!-- Приветственный экран -->
+<div id="welcome" class="hidden">
+  <h1>Привет, <span id="welcome-name"></span>!</h1>
+  <p>Ты в лобби <b id="welcome-code"></b></p>
+  <p>Ждём начала игры…</p>
+</div>
+
+<pre id="log" style="color:#888"></pre>
+
+<script>
+const joinScreen = document.getElementById('join-screen');
+const welcomeScreen = document.getElementById('welcome');
+const log = document.getElementById('log');
+
+document.getElementById('join').onclick = () => {
+  const name = document.getElementById('name').value.trim();
+  const code = document.getElementById('code').value.trim().toUpperCase();
+  document.getElementById('error').textContent = '';
+
+  if (!name || !code) {
+    document.getElementById('error').textContent = 'Введите имя и код';
+    return;
+  }
+
+  const ws = new WebSocket(
+    `ws://${location.host}/ws/player/${code}?name=${encodeURIComponent(name)}`
+  );
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    log.textContent += JSON.stringify(msg) + '\n';
+
+    if (msg.type === 'welcome') {
+      // сохраняем для будущего reconnect
+      sessionStorage.setItem('player_id', msg.data.player_id);
+      sessionStorage.setItem('player_name', msg.data.name);
+      sessionStorage.setItem('lobby_code', code);
+
+      // переключаем экран
+      document.getElementById('welcome-name').textContent = msg.data.name;
+      document.getElementById('welcome-code').textContent = code;
+      joinScreen.classList.add('hidden');
+      welcomeScreen.classList.remove('hidden');
+    }
+  };
+
+  ws.onclose = (e) => {
+    log.textContent += `closed: ${e.code}\n`;
+    // если закрыли до welcome — показываем причину
+    if (e.code === 4001) document.getElementById('error').textContent = 'Пустое имя';
+    if (e.code === 4002) document.getElementById('error').textContent = 'Имя занято';
+    if (e.code === 4003) document.getElementById('error').textContent = 'Лобби недоступно (полное / игра началась / нет хоста)';
+    if (e.code === 4004) document.getElementById('error').textContent = 'Лобби не найдено';
+    if (e.code === 4005) document.getElementById('error').textContent = 'Слишком длинное имя';
+  };
+};
+</script>
+</body>
+</html>

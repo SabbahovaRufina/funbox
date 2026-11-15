@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Host — Jackbox Lite</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+  h1 { margin-bottom: 8px; }
+  .code { font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #2b6cb0; }
+  button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  ul { list-style: none; padding: 0; }
+  li { padding: 6px 0; border-bottom: 1px solid #eee; }
+  .muted { color: #888; font-size: 14px; }
+  #log { color: #666; font-size: 12px; background: #fafafa; padding: 8px; max-height: 160px; overflow: auto; }
+  .status { font-size: 14px; color: #444; }
+  .status.ok { color: #2f855a; }
+  .status.bad { color: #c53030; }
+  .hint { font-size: 14px; color: #d97706; margin-left: 12px; }
+</style>
+</head>
+<body>
+
+<h1>Хост</h1>
+
+<div id="pre-lobby">
+  <button id="create">Создать лобби</button>
+</div>
+
+<div id="lobby" style="display:none">
+  <p>Код лобби: <span class="code" id="code">—</span></p>
+  <p class="status" id="ws-status">Соединение: —</p>
+
+  <h3>Игроки (<span id="count">0</span>)</h3>
+  <ul id="players"></ul>
+
+  <div>
+    <button id="start" disabled>Начать игру</button>
+    <span id="start-hint" class="hint"></span>
+  </div>
+</div>
+
+<pre id="log"></pre>
+
+<script>
+// Должно совпадать с MIN_PLAYERS в models.py
+const MIN_PLAYERS = 4;
+
+let ws = null;
+let currentCode = null;
+
+const $ = (id) => document.getElementById(id);
+const log = (s) => { $('log').textContent += s + '\n'; };
+
+function setStatus(text, cls) {
+  const el = $('ws-status');
+  el.textContent = 'Соединение: ' + text;
+  el.className = 'status ' + (cls || '');
+}
+
+// Обновляет и список, и состояние кнопки "Начать"
+function renderPlayers(players) {
+  const ul = $('players');
+  ul.innerHTML = '';
+  $('count').textContent = players.length;
+
+  if (players.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'muted';
+    li.textContent = 'Пока никого…';
+    ul.appendChild(li);
+  } else {
+    for (const p of players) {
+      const li = document.createElement('li');
+      li.textContent = p.name;
+      ul.appendChild(li);
+    }
+  }
+
+  // --- Блокировка кнопки "Начать игру" ---
+  const startBtn = $('start');
+  const hint = $('start-hint');
+
+  if (players.length < MIN_PLAYERS) {
+    startBtn.disabled = true;
+    hint.textContent = `Нужно минимум ${MIN_PLAYERS} игроков (сейчас ${players.length})`;
+  } else {
+    startBtn.disabled = false;
+    hint.textContent = '';
+  }
+}
+
+function connectHost(code) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws/host/${code}`);
+
+  ws.onopen = () => {
+    setStatus('подключено', 'ok');
+    log(`ws открыт, код ${code}`);
+  };
+
+  ws.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { log('не JSON: ' + e.data); return; }
+    log('← ' + JSON.stringify(msg));
+
+    if (msg.type === 'players_update') {
+      renderPlayers(msg.data || []);
+    } else if (msg.type === 'game_started') {
+      $('start').disabled = true;
+      $('start-hint').textContent = '';
+      setStatus('игра началась', 'ok');
+    } else if (msg.type === 'error') {
+      if (msg.data?.reason === 'not_enough_players') {
+        alert(`Недостаточно игроков: нужно минимум ${msg.data.need}, сейчас ${msg.data.have}`);
+        // Пересчитываем состояние кнопки актуально
+        $('start').disabled = true;
+        $('start-hint').textContent = `Нужно минимум ${msg.data.need} игроков`;
+      }
+    } else if (msg.type === 'pong') {
+      // ответ на ping
+    }
+  };
+
+  ws.onclose = (e) => {
+    setStatus(`закрыто (${e.code})`, 'bad');
+    log(`ws закрыт: code=${e.code} reason=${e.reason || '-'}`);
+
+    if (e.code === 4004) {
+      $('start').disabled = true;
+      log('Лобби не найдено на сервере.');
+      return;
+    }
+
+    if (currentCode) {
+      setTimeout(() => {
+        log('пробую переподключиться как хост…');
+        connectHost(currentCode);
+      }, 1500);
+    }
+  };
+
+  ws.onerror = () => {
+    log('ws ошибка');
+  };
+}
+
+$('create').onclick = async () => {
+  $('create').disabled = true;
+  try {
+    const r = await fetch('/lobby', { method: 'POST' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const { code } = await r.json();
+
+    currentCode = code;
+    $('code').textContent = code;
+    $('pre-lobby').style.display = 'none';
+    $('lobby').style.display = 'block';
+
+    // Кнопка остаётся disabled, пока не придут игроки (renderPlayers включит)
+    // $('start').disabled = false;  <-- ЭТУ СТРОКУ УДАЛИЛИ
+
+    connectHost(code);
+  } catch (err) {
+    $('create').disabled = false;
+    log('не удалось создать лобби: ' + err.message);
+    alert('Не удалось создать лобби: ' + err.message);
+  }
+};
+
+$('start').onclick = () => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    log('нельзя стартовать: ws не открыт');
+    return;
+  }
+  ws.send(JSON.stringify({ type: 'start_game' }));
+  $('start').disabled = true;
+  log('→ start_game');
+};
+</script>
+</body>
+</html>
