@@ -29,6 +29,7 @@ async def create_lobby():
 
 @app.get("/lobby/{code}/exists")
 async def lobby_exists(code: str):
+    """Проверяет, существует ли лобби с указанным кодом."""
     lobby = lobby_store.get(code)
     return {"exists": lobby is not None}
 
@@ -37,6 +38,7 @@ async def lobby_exists(code: str):
 
 @app.websocket("/ws/host/{code}")
 async def ws_host(websocket: WebSocket, code: str):
+    """WebSocket хоста лобби: приём сообщений и очистка при отключении."""
     code = code.upper()
     lobby = lobby_store.get(code)
     if not lobby:
@@ -63,10 +65,11 @@ async def ws_host(websocket: WebSocket, code: str):
         lobby = lobby_store.get(code)
         if lobby:
             lobby.host_connected = False
-        lobby_store.delete_if_empty(code)
+        lobby_store.delete_if_empty(code) # у меня еще где-то есть очистка лобби?
 
 
 async def handle_host_message(code: str, msg: dict) -> None:
+    """Обрабатывает сообщение от хоста лобби по его типу."""
     lobby = lobby_store.get(code)
     if not lobby:
         return
@@ -74,6 +77,9 @@ async def handle_host_message(code: str, msg: dict) -> None:
     mtype = msg.get("type")
 
     if mtype == "start_game":
+        if lobby.started:
+            await manager.send_to_host(code, {"type": "error", "data": {"reason": "already_started"}})
+            return
         if not lobby.can_start():
             await manager.send_to_host(code, {
                 "type": "error",
@@ -99,6 +105,7 @@ async def handle_host_message(code: str, msg: dict) -> None:
 
 @app.websocket("/ws/player/{code}")
 async def ws_player(websocket: WebSocket, code: str, name: str = "Player"):
+    """WebSocket игрока: вход в лобби, приём сообщений, очистка при выходе."""
     code = code.upper()
     lobby = lobby_store.get(code)
     name = name.strip()
@@ -114,8 +121,8 @@ async def ws_player(websocket: WebSocket, code: str, name: str = "Player"):
         await websocket.close(code=4005)  # слишком длинное имя
         return
 
-    if lobby.has_name(name):
-        await websocket.close(code=4002)   # имя занято
+    if lobby.is_name_taken(name):
+        await websocket.close(code=4002)  # имя занято
         return
 
     if not lobby.can_accept_players():
@@ -142,8 +149,10 @@ async def ws_player(websocket: WebSocket, code: str, name: str = "Player"):
             msg = await websocket.receive_json()
             await handle_player_message(code, player.id, msg)
     except WebSocketDisconnect:
+        pass
+    finally:
         manager.disconnect_player(code, player.id)
-        lobby = lobby_store.get(code)
+        lobby = lobby_store.get(code)          # свежая ссылка
         if lobby:
             lobby.remove_player(player.id)
             await manager.send_to_host(code, {
@@ -154,7 +163,8 @@ async def ws_player(websocket: WebSocket, code: str, name: str = "Player"):
 
 
 async def handle_player_message(code: str, player_id: str, msg: dict) -> None:
+    """Обрабатывает сообщение от игрока по его типу."""
     mtype = msg.get("type")
     if mtype == "ping":
         await manager.send_to_player(code, player_id, {"type": "pong"})
-    # Здесь позже: ответы игрока в игре
+
