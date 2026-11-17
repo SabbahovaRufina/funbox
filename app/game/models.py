@@ -2,31 +2,46 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class CardSet:
-    profession: str
-    bio: str
-    hobby: str
-    fact: str
-    baggage: str
-    health: str
-    phobia: str
+class Role:
+    """Роли в игре"""
+    id: str
+    title: str            # "Врач", "Инженер"
+    description: str      # что делает в бункере
+    task: str             # задачи роли в игре
 
-    def to_dict(self) -> dict:
-        return {
-            "profession": self.profession,
-            "bio": self.bio,
-            "hobby": self.hobby,
-            "fact": self.fact,
-            "baggage": self.baggage,
-            "health": self.health,
-            "phobia": self.phobia,
-        }
+
+CARD_FIELDS = ("profession", "health", "hobby", "phobia", "baggage", "fact", "special")
+
+@dataclass
+class PlayerCard:
+    id: str                    # уникальный id карты (для "reveal")
+    field: str                 # одно из CARD_FIELDS
+    title: str                 # "Хирург"
 
 
 @dataclass
-class GameState:
-    catastrophe: str
-    needed_roles: list[str]
-    cards: dict[str, CardSet]      # player_id -> CardSet
-    round: int = 0
+class PlayerState:
+    player_id: str
+    cards: list[PlayerCard]         # все карты игрока
+    revealed_ids: list[str]         # до 3 выбранных
+    role_ids: list[str]             # до 3 претензий
+    ready: bool = False             # подтвердил выбор карт и ролей
+
+
+@dataclass
+class Catastrophe:
+    title: str            # "Ядерная зима"
+    description: str
+    survival_years: int   # сколько надо продержаться
+
+
+@dataclass
+class GameSession:
+    code: str
+    catastrophe: Catastrophe
+    capacity: int  # ← ключевое: мест в бункере
+    roles: list[Role]  # длина == bunker_capacity
+    player_cards: dict[str, PlayerCard]  # player_id -> карты
+    chosen_roles: dict[str, list[str]]
+    phase: str = "reveal"  # reveal -> discussion -> vote -> result
 
