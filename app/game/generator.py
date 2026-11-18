@@ -7,16 +7,16 @@ import math
 MAX_REVEALED_CARDS = 3
 MAX_CLAIMED_ROLES = 3
 
-def _make_cards() -> list[PlayerCard]:
+def _make_unique_cards(used_ids: set[str]) -> list[PlayerCard]:
     """Рандомайзер карт игрока"""
     cards = []
     for field in CARD_FIELDS:
-        item = random.choice(getattr(content, field))   # content.profession -> list[dict]
-        cards.append(PlayerCard(
-            id=f"{field}:{item['id']}",
-            field=field,
-            title=item["title"],
-        ))
+        pool = getattr(content, field)
+        candidates = [it for it in pool if f"{field}:{it['id']}" not in used_ids]
+        item = random.choice(candidates)
+        cid = f"{field}:{item['id']}"
+        used_ids.add(cid)
+        cards.append(PlayerCard(id=cid, field=field, title=item["title"]))
     return cards
 
 def generate_game(lobby: Lobby) -> GameSession:
