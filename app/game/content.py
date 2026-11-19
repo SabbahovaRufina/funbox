@@ -1,7 +1,6 @@
 ROLE_TAGS = {
     "medical",      # медицина
     "engineering",  # инженерия / техника
-    "science",      # наука / исследования
     "survival",     # выживание / охота / сельское хозяйство
     "social",       # коммуникация / психология / лидерство
     "military",     # оружие / охрана / тактика
@@ -39,7 +38,7 @@ profession = [
     {"id": "Mechanical Engineer", "title": "Инженер-механик", "gender": "neutral", "tags": ["engineering"]},
     {"id": "Chemist", "title": "Химик", "gender": "neutral", "tags": ["engineering"]},
     {"id": "Theoretical physicist", "title": "Физик-теоретик", "gender": "neutral", "tags": ["engineering"]},
-    {"id": "Radio Technician", "title": "Радиотехник", "gender": "neutral", "tags": ["engineering"]},
+    {"id": "Radio Technician", "title": "Радиотехник", "gender": "neutral", "tags": ["engineering", "scout"]},
     {"id": "Shipbuilder", "title": "Кораблестроитель", "gender": "neutral", "tags": ["engineering"]},
     {"id": "Roboticist", "title": "Робототехник", "gender": "neutral", "tags": ["engineering"]},
     {"id": "Surveyor", "title": "Геодезист", "gender": "neutral", "tags": ["engineering"]},
