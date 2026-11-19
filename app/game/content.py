@@ -32,4 +32,6 @@ profession = [
     {"id": "Ship's doctor", "title": "Корабельный врач", "gender": "neutral", "tags": ["medical"]},
     {"id": "Gastroenterologist", "title": "Гастроэнтеролог", "gender": "neutral", "tags": ["medical"]},
     {"id": "Virologist", "title": "Вирусолог", "gender": "neutral", "tags": ["medical"]},
+    {"id": "Vet", "title": "Ветеринар", "gender": "neutral", "tags": ["medical", "survival"]},
+    {"id": "Infectious disease specialist", "title": "Инфекционист", "gender": "neutral", "tags": ["medical"]},
 ]
