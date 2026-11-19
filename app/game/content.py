@@ -102,4 +102,5 @@ profession = [
     {"id": "Military commander", "title": "Военный командир", "gender": "male", "tags": ["neutral"]},
     {"id": "Prostitute", "title": "Проститутка", "gender": "female", "tags": ["neutral"]},
     {"id": "Miner", "title": "Шахтер", "gender": "male", "tags": ["neutral"]},
+    {"id": "Funeral service worker", "title": "Работник ритуальных услуг", "gender": "neutral", "tags": ["neutral"]},
 ]
