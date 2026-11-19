@@ -31,4 +31,5 @@ profession = [
     {"id": "Folk Healer", "title": "Знахарь", "gender": "neutral", "tags": ["medical", "magic"]},
     {"id": "Ship's doctor", "title": "Корабельный врач", "gender": "neutral", "tags": ["medical"]},
     {"id": "Gastroenterologist", "title": "Гастроэнтеролог", "gender": "neutral", "tags": ["medical"]},
+    {"id": "Virologist", "title": "Вирусолог", "gender": "neutral", "tags": ["medical"]},
 ]
