@@ -46,4 +46,8 @@ profession = [
     {"id": "Thermal Power Engineer", "title": "Теплоэнергетик", "gender": "neutral", "tags": ["engineering"]},
     {"id": "Construction Engineer", "title": "Инженер-строитель", "gender": "neutral", "tags": ["engineering", "craft"]},
     {"id": "Nuclear physicist", "title": "Физик-ядерщик", "gender": "neutral", "tags": ["engineering"]},
+    {"id": "Priest", "title": "Священник", "gender": "male", "tags": ["magic"]},
+    {"id": "Witch", "title": "Ведьма", "gender": "female", "tags": ["magic"]},
+    {"id": "Shaman", "title": "Шаман", "gender": "male", "tags": ["magic"]},
+    {"id": "Fortune-teller", "title": "Гадалка", "gender": "female", "tags": ["magic"]},
 ]
