@@ -34,4 +34,5 @@ profession = [
     {"id": "Virologist", "title": "Вирусолог", "gender": "neutral", "tags": ["medical"]},
     {"id": "Vet", "title": "Ветеринар", "gender": "neutral", "tags": ["medical", "survival"]},
     {"id": "Infectious disease specialist", "title": "Инфекционист", "gender": "neutral", "tags": ["medical"]},
+    {"id": "Pathologist", "title": "Патологоанатом", "gender": "neutral", "tags": ["medical"]},
 ]
