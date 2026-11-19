@@ -7,6 +7,7 @@ ROLE_TAGS = {
     "craft",        # ремесло / строительство
     "scout",        # разведка / наблюдение / связь
     "magic",        # магия / оккультизм / сверхъестественное
+    "neutral"
 }
 
 GENDER_TAGS = {"male", "female", "neutral"}
