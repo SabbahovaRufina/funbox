@@ -14,7 +14,6 @@ GENDER_TAGS = {"male", "female", "neutral"}
 
 profession = [
     {"id": "Surgeon",  "title": "Хирург",  "gender": "neutral", "tags": ["medical"]},
-    {"id": "Male nurse", "title": "Медбрат", "gender": "male",   "tags": ["medical"]},
     {"id": "Military doctor", "title": "Военный врач", "gender": "neutral", "tags": ["medical", "military"]},
     {"id": "Ophthalmologist", "title": "Офтальмолог", "gender": "neutral", "tags": ["medical"]},
     {"id": "Nurse", "title": "Медсестра", "gender": "female", "tags": ["medical"]},
@@ -83,4 +82,15 @@ profession = [
     {"id": "Soapmaker", "title": "Мыловар", "gender": "neutral", "tags": ["craft"]},
     {"id": "Tailor", "title": "Портной", "gender": "neutral", "tags": ["craft"]},
     {"id": "Jeweler", "title": "Ювелир", "gender": "neutral", "tags": ["craft"]},
+    {"id": "Civil aviation pilot", "title": "Пилот гражданской авиации", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Taxi driver", "title": "Водитель такси", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Biology teacher", "title": "Учитель биологии", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Navigator", "title": "Штурман", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Cook", "title": "Повар", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Programmer", "title": "Программист", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Accountant", "title": "Бухгалтер", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Nanny", "title": "Няня", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Meteorologist", "title": "Метеоролог", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Boxing coach", "title": "Тренер по боксу", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Industrial climber", "title": "Промышленный альпинист", "gender": "neutral", "tags": ["neutral"]},
 ]
