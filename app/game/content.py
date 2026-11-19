@@ -1,7 +1,7 @@
 ROLE_TAGS = {
     "medical",      # медицина
     "engineering",  # инженерия / техника
-    "survival",     # выживание / охота / сельское хозяйство
+    "survival",     # охота / сельское хозяйство
     "social",       # коммуникация / психология / лидерство
     "military",     # оружие / охрана / тактика
     "craft",        # ремесло / строительство
@@ -49,4 +49,13 @@ profession = [
     {"id": "Witch", "title": "Ведьма", "gender": "female", "tags": ["magic"]},
     {"id": "Shaman", "title": "Шаман", "gender": "male", "tags": ["magic"]},
     {"id": "Fortune-teller", "title": "Гадалка", "gender": "female", "tags": ["magic"]},
+    {"id": "Hunter", "title": "Охотник", "gender": "neutral", "tags": ["scout", "survival"]},
+    {"id": "Forester", "title": "Лесник", "gender": "neutral", "tags": ["scout"]},
+    {"id": "Sniper", "title": "Снайпер", "gender": "neutral", "tags": ["scout", "military"]},
+    {"id": "Military Intelligence Officer", "title": "Военный разведчик", "gender": "neutral", "tags": ["scout", "military"]},
+    {"id": "Emergency Ministry rescuer", "title": "Спасатель МЧС", "gender": "neutral", "tags": ["scout"]},
+    {"id": "Drone operator", "title": "Оператор дронов", "gender": "neutral", "tags": ["scout"]},
+    {"id": "Commercial fisherman", "title": "Рыбак-промысловик", "gender": "neutral", "tags": ["scout", "survival"]},
+    {"id": "Mountain guide", "title": "Горный гид", "gender": "neutral", "tags": ["scout"]},
+    {"id": "Rescue Diver", "title": "Спасательный дайвер", "gender": "neutral", "tags": ["scout"]},
 ]
