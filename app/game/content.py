@@ -35,4 +35,7 @@ profession = [
     {"id": "Vet", "title": "Ветеринар", "gender": "neutral", "tags": ["medical", "survival"]},
     {"id": "Infectious disease specialist", "title": "Инфекционист", "gender": "neutral", "tags": ["medical"]},
     {"id": "Pathologist", "title": "Патологоанатом", "gender": "neutral", "tags": ["medical"]},
+    {"id": "Electrical specialist", "title": "Специалист по электрике", "gender": "neutral", "tags": ["engineering"]},
+    {"id": "Mechanical Engineer", "title": "Инженер-механик", "gender": "neutral", "tags": ["engineering"]},
+    {"id": "Chemist", "title": "Химик", "gender": "neutral", "tags": ["engineering"]},
 ]
