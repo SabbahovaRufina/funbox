@@ -251,6 +251,8 @@ BAGGAGE = [
     {"id": "Boxes of soap", "title": "Ящики с мылом", "gender": "neutral", "tags": ["craft"]},
     {"id": "A pistol and bullets", "title": "Пистолет и пули", "gender": "neutral", "tags": ["military"]},
     {"id": "Two-way radio and batteries", "title": "Рация и батареи", "gender": "neutral", "tags": ["scout", "military"]},
+    {"id": "Map of the area", "title": "Карта местности", "gender": "neutral", "tags": ["scout"]},
+    {"id": "Plant seedlings", "title": "Саженцы растений", "gender": "neutral", "tags": ["survival"]},
 
 
 
