@@ -243,7 +243,7 @@ PHOBIA = [
 BAGGAGE = [
     {"id": "First aid kit", "title": "Аптечка первой помощи", "gender": "neutral", "tags": ["scout", "military"]},
     {"id": "Candles and matches", "title": "Свечи и спички", "gender": "neutral", "tags": ["magic"]},
-    {"id": "Car", "title": "Машина", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Passenger car", "title": "Легковая машина", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Seeds and a shovel", "title": "Семена и лопата", "gender": "neutral", "tags": ["survival"]},
     {"id": "Antivirals", "title": "Противовирусные", "gender": "neutral", "tags": ["medical"]},
     {"id": "Firewood and an axe", "title": "Дрова и топор", "gender": "neutral", "tags": ["scout"]},
@@ -273,5 +273,6 @@ BAGGAGE = [
     {"id": "Medicinal herbs and roots", "title": "Лечебные травы и корешки", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Powerful gaming computer", "title": "Мощный игровой компьютер", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Flash drives with movies", "title": "Флешки с фильмами", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Fabrics, needles, and threads", "title": "Ткани, иголки и нитки", "gender": "neutral", "tags": ["craft"]},
     
 ]
