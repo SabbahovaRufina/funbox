@@ -278,5 +278,5 @@ BAGGAGE = [
     {"id": "Dildo", "title": "Дилдо", "gender": "neutral", "tags": ["neutral"]},
     {"id": "AIDS pills", "title": "Таблетки от спида", "gender": "neutral", "tags": ["medical"]},
     {"id": "Inhaler", "title": "Ингалятор", "gender": "neutral", "tags": ["medical"]},
-    {"id": "A suitcase full of drugs", "title": "Чемодан с наркотиками", "gender": "neutral", "tags": ["medical"]},
+    {"id": "A suitcase full of drugs", "title": "Чемодан с наркотиками", "gender": "neutral", "tags": ["neutral"]},
 ]
