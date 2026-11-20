@@ -206,6 +206,7 @@ HOBBY = [
     {"id": "Skis", "title": "Лыжи", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Automotive Mechanics", "title": "Автомеханика", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Watching movies and TV series", "title": "Просмотр фильмов и сериалов", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Pistol shooting", "title": "Стрельба из пистолета", "gender": "neutral", "tags": ["military", "survival"]},
 ]
 
 
@@ -232,12 +233,15 @@ PHOBIA = [
     {"id": "The fear of getting lost in the forest", "title": "Страх заблудиться в лесу", "gender": "neutral", "tags": ["neutral"]},
     {"id": "The fear of encountering a bear", "title": "Страх встретить медведя", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fear of viruses", "title": "Страх вирусов", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "The fear of encountering a ghost", "title": "Страх встретить приведение", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Fear of heights", "title": "Страх высоты", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Fear of being killed", "title": "Страх быть убитым", "gender": "neutral", "tags": ["neutral"]},
 ]
 
 
 BAGGAGE = [
-    {"id": "First aid kit", "title": "Аптечка первой помощи", "gender": "neutral", "tags": ["military"]},
-    {"id": "Candles", "title": "Свечи", "gender": "neutral", "tags": ["magic"]},
+    {"id": "First aid kit", "title": "Аптечка первой помощи", "gender": "neutral", "tags": ["scout", "military"]},
+    {"id": "Candles and matches", "title": "Свечи и спички", "gender": "neutral", "tags": ["magic"]},
     {"id": "Car", "title": "Машина", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Seeds and a shovel", "title": "Семена и лопата", "gender": "neutral", "tags": ["survival"]},
     {"id": "Antivirals", "title": "Противовирусные", "gender": "neutral", "tags": ["medical"]},
@@ -245,15 +249,28 @@ BAGGAGE = [
     {"id": "Fishing rod and tackle", "title": "Удочка и снасти", "gender": "neutral", "tags": ["survival"]},
     {"id": "Encyclopedias", "title": "Энциклопедии", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Guitar", "title": "Гитара", "gender": "neutral", "tags": ["social"]},
-    {"id": "The Hive and the Bees", "title": "Улей и пчелы", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "The Hive and the Bees", "title": "Улей и пчелы", "gender": "neutral", "tags": ["survival"]},
     {"id": "Knife collection", "title": "Коллекция ножей", "gender": "neutral", "tags": ["military"]},
     {"id": "A large, comfortable sofa", "title": "Комфортабельный большой диван", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Boxes of soap", "title": "Ящики с мылом", "gender": "neutral", "tags": ["craft"]},
     {"id": "A pistol and bullets", "title": "Пистолет и пули", "gender": "neutral", "tags": ["military"]},
-    {"id": "Two-way radio and batteries", "title": "Рация и батареи", "gender": "neutral", "tags": ["scout", "military"]},
+    {"id": "3 walkie-talkies and batteries", "title": "3 рации и батрейки", "gender": "neutral", "tags": ["scout", "military"]},
     {"id": "Map of the area", "title": "Карта местности", "gender": "neutral", "tags": ["scout"]},
     {"id": "Plant seedlings", "title": "Саженцы растений", "gender": "neutral", "tags": ["survival"]},
-
-
-
+    {"id": "Antidepressants", "title": "Антидепрессанты", "gender": "neutral", "tags": ["social"]},
+    {"id": "Circus bear", "title": "Цирковой медведь", "gender": "neutral", "tags": ["social"]},
+    {"id": "Radio", "title": "Радио", "gender": "neutral", "tags": ["social", "engineering", "scout", "craft"]},
+    {"id": "Cases of alcohol", "title": "Ящики с алкоголем", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Toilet paper and canned goods", "title": "Туалетная бумага и консервы", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Blankets", "title": "Одеяла", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "House cat", "title": "Домашний котик", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Trained police dog (young)", "title": "Дрессированая полицейская собака (молодая)", "gender": "neutral", "tags": ["military"]},
+    {"id": "Water filters", "title": "Фильтры для воды", "gender": "neutral", "tags": ["survival"]},
+    {"id": "3 construction lights and batteries", "title": "3 строительных фонаря и батареи", "gender": "neutral", "tags": ["craft"]},
+    {"id": "Camcorder", "title": "Видеокамера", "gender": "neutral", "tags": ["social"]},
+    {"id": "Spices and seasonings", "title": "Специи и приправы", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Medicinal herbs and roots", "title": "Лечебные травы и корешки", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Powerful gaming computer", "title": "Мощный игровой компьютер", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Flash drives with movies", "title": "Флешки с фильмами", "gender": "neutral", "tags": ["neutral"]},
+    
 ]
