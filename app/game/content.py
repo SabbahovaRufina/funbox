@@ -153,6 +153,7 @@ BIO = [
     {"id": "Male, 25 years old", "title": "Мужчина 25 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 25 years old", "title": "Мужчина 27 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 28 years old", "title": "Мужчина 28 лет", "gender": "male", "tags": ["neutral"]},
+    {"id": "Male, 28 years old gay", "title": "Мужчина 29 лет гей", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 30 years old", "title": "Мужчина 30 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 31 years old", "title": "Мужчина 31 год", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 34 years old", "title": "Мужчина 34 года", "gender": "male", "tags": ["neutral"]},
