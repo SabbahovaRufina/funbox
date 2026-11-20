@@ -275,5 +275,6 @@ BAGGAGE = [
     {"id": "Flash drives with movies", "title": "Флешки с фильмами", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fabrics, needles, and threads", "title": "Ткани, иголки и нитки", "gender": "neutral", "tags": ["craft"]},
     {"id": "A lot of money and 3 SUVs", "title": "Много денег и 3 внедорожника", "gender": "neutral", "tags": ["craft"]},
+    {"id": "Dildo", "title": "Дилдо", "gender": "neutral", "tags": ["neutral"]},
     
 ]
