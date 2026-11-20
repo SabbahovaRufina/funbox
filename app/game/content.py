@@ -276,5 +276,6 @@ BAGGAGE = [
     {"id": "Fabrics, needles, and threads", "title": "Ткани, иголки и нитки", "gender": "neutral", "tags": ["craft"]},
     {"id": "A lot of money and 3 SUVs", "title": "Много денег и 3 внедорожника", "gender": "neutral", "tags": ["craft"]},
     {"id": "Dildo", "title": "Дилдо", "gender": "neutral", "tags": ["neutral"]},
-    
+    {"id": "AIDS pills", "title": "Таблетки от спида", "gender": "neutral", "tags": ["medical"]},
+    {"id": "Inhaler", "title": "Ингалятор", "gender": "neutral", "tags": ["medical"]},
 ]
