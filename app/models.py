@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 import uuid
+from .game.models import GameSession
 
 
 MAX_PLAYERS = 12
@@ -44,6 +45,7 @@ class Lobby:
     host_connected: bool = False
     players: dict[str, Player] = field(default_factory=dict)  # player_id -> Player
     started: bool = False
+    game: GameSession | None = None
 
     def add_player(self, name: str) -> Player:
         """Создаёт игрока и добавляет его в лобби. Возвращает созданного."""

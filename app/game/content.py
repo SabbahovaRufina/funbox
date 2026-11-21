@@ -1,14 +1,14 @@
-ROLE_TAGS = {
-    "medical",      # медицина
-    "engineering",  # инженерия / техника
-    "survival",     # охота / сельское хозяйство
-    "social",       # коммуникация / психология / лидерство
-    "military",     # оружие / охрана / тактика
-    "craft",        # ремесло / строительство
-    "scout",        # разведка / наблюдение / связь
-    "magic",        # магия / оккультизм / сверхъестественное
-    "neutral"
-}
+ROLES = [
+    {"id": "medical", "title": "Врачевание / медицина "},
+    {"id": "engineering", "title": "Инженерия / техника"},
+    {"id": "survival", "title": "Охота / сельское хозяйство / пропитание"},
+    {"id": "social", "title": "Коммуникация / психология / лидерство"},
+    {"id": "military", "title": "Оружие / охрана / защита"},
+    {"id": "craft", "title": "Ремесло / строительство"},
+    {"id": "scout", "title": "Разведка / наблюдение / связь"},
+    {"id": "magic", "title": "Магия / религия / сверхъестественное"},
+    {"id": "neutral", "title": "Нейтральная роль"},
+]
 
 GENDER_TAGS = {"male", "female", "neutral"}
 
@@ -97,8 +97,6 @@ profession = [
     {"id": "Boxing coach", "title": "Тренер по боксу", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Industrial climber", "title": "Промышленный альпинист", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Parcel pickup point owner", "title": "Владелец ПВЗ", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Confectioner", "title": "Кондитер", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Marketer", "title": "Маркетолог", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Septic tank cleaner", "title": "Ассенизатор", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Loader", "title": "Грузчик", "gender": "male", "tags": ["neutral"]},
     {"id": "Interior Designer", "title": "Дизайнер интерьера", "gender": "neutral", "tags": ["neutral"]},
@@ -145,6 +143,7 @@ HEALTH = [
     {"id": "Insomnia (mild)", "title": "Бессоница (слабая степень)", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Paranoia", "title": "Паранойя", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Scurvy", "title": "Цинга", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Lice", "title": "Вши", "gender": "neutral", "tags": ["neutral"]},
 ]
 
 
@@ -186,7 +185,7 @@ HOBBY = [
     {"id": "Fishing", "title": "Рыбалка", "gender": "neutral", "tags": ["survival"]},
     {"id": "Mushroom foraging", "title": "Грибничество", "gender": "neutral", "tags": ["survival"]},
     {"id": "Pottery craft", "title": "Гончарное ремесло", "gender": "neutral", "tags": ["craft"]},
-    {"id": "Gym", "title": "Качалка", "gender": "neutral", "tags": ["military", "scout"]},
+    {"id": "Working out at the gym", "title": "Занятия спортом в спортзале", "gender": "neutral", "tags": ["military", "scout"]},
     {"id": "Parachuting", "title": "Прыжки с парашютом", "gender": "neutral", "tags": ["military"]},
     {"id": "Trips", "title": "Путешествия", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Video blog", "title": "Видео-блог", "gender": "neutral", "tags": ["social"]},
@@ -208,6 +207,8 @@ HOBBY = [
     {"id": "Watching movies and TV series", "title": "Просмотр фильмов и сериалов", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Pistol shooting", "title": "Стрельба из пистолета", "gender": "neutral", "tags": ["military", "survival"]},
     {"id": "Production of homemade alcoholic beverages", "title": "Изготовление домашних алкогольных напитков", "gender": "neutral", "tags": ["military", "survival"]},
+    {"id": "Hiking", "title": "Походы", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "BDSM practices", "title": "БДСМ-практики", "gender": "neutral", "tags": ["neutral"]},
 ]
 
 
@@ -240,45 +241,48 @@ PHOBIA = [
 
 
 BAGGAGE = [
-    {"id": "First aid kit", "title": "Аптечка первой помощи", "gender": "neutral", "tags": ["scout", "military"]},
-    {"id": "Candles and matches", "title": "Свечи и спички", "gender": "neutral", "tags": ["magic"]},
+    {"id": "Medic’s kit", "title": "Аптечка фельдшера", "gender": "neutral", "tags": ["medical", "scout", "military"]},
+    {"id": "Candles and matches", "title": "Свечи и спички", "gender": "neutral", "tags": ["magic", "scout"]},
     {"id": "Passenger car", "title": "Легковая машина", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Seeds and a shovel", "title": "Семена и лопата", "gender": "neutral", "tags": ["survival"]},
-    {"id": "Antivirals", "title": "Противовирусные", "gender": "neutral", "tags": ["medical"]},
+    {"id": "Microlax supply", "title": "Запас Микролакса", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Antiviral stock", "title": "Запас противовирусных", "gender": "neutral", "tags": ["medical"]},
     {"id": "Firewood and an axe", "title": "Дрова и топор", "gender": "neutral", "tags": ["scout"]},
     {"id": "Fishing rod and tackle", "title": "Удочка и снасти", "gender": "neutral", "tags": ["survival"]},
-    {"id": "Encyclopedias", "title": "Энциклопедии", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "An Encyclopedia of Everything in 3 Volumes", "title": "Энциклопедия обо всем в 3 томах", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Guitar", "title": "Гитара", "gender": "neutral", "tags": ["social"]},
     {"id": "The Hive and the Bees", "title": "Улей и пчелы", "gender": "neutral", "tags": ["survival"]},
     {"id": "Knife collection", "title": "Коллекция ножей", "gender": "neutral", "tags": ["military"]},
     {"id": "A large, comfortable sofa", "title": "Комфортабельный большой диван", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Boxes of soap", "title": "Ящики с мылом", "gender": "neutral", "tags": ["craft"]},
-    {"id": "A pistol and bullets", "title": "Пистолет и пули", "gender": "neutral", "tags": ["military"]},
-    {"id": "3 walkie-talkies and batteries", "title": "3 рации и батрейки", "gender": "neutral", "tags": ["scout", "military"]},
-    {"id": "Map of the area", "title": "Карта местности", "gender": "neutral", "tags": ["scout"]},
-    {"id": "Plant seedlings", "title": "Саженцы растений", "gender": "neutral", "tags": ["survival"]},
-    {"id": "Antidepressants", "title": "Антидепрессанты", "gender": "neutral", "tags": ["social"]},
+    {"id": "Ropes and crates of soap", "title": "Веревки и ящики с мылом", "gender": "neutral", "tags": ["craft"]},
+    {"id": "A pistol and a supply of bullets", "title": "Пистолет и запас пуль", "gender": "neutral", "tags": ["military"]},
+    {"id": "3 walkie-talkies and batteries", "title": "3 рации и батарейки", "gender": "neutral", "tags": ["scout", "military"]},
+    {"id": "Compass and map of the area", "title": "Компас и карта местности", "gender": "neutral", "tags": ["scout"]},
+    {"id": "Fruit tree saplings", "title": "Саженцы фруктовых деревьев", "gender": "neutral", "tags": ["survival"]},
+    {"id": "A supply of antidepressants and tranquilizers", "title": "Запас антидепрессантов и транквилизаторов", "gender": "neutral", "tags": ["medical", "social"]},
     {"id": "Circus bear", "title": "Цирковой медведь", "gender": "neutral", "tags": ["social"]},
     {"id": "Radio", "title": "Радио", "gender": "neutral", "tags": ["social", "engineering", "scout", "craft"]},
-    {"id": "Cases of alcohol", "title": "Ящики с алкоголем", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Toilet paper and canned goods", "title": "Туалетная бумага и консервы", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Blankets", "title": "Одеяла", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Cases of premium alcohol", "title": "Ящики с элитным алкоголем", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Toilet paper and canned goods", "title": "Туалетная бумага и консервы", "gender": "neutral", "tags": ["survival"]},
+    {"id": "Blankets and a portable oil-filled radiator", "title": "Одеяла и масляный переносной радиатор", "gender": "neutral", "tags": ["neutral"]},
     {"id": "House cat", "title": "Домашний котик", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Trained police dog (young)", "title": "Дрессированая полицейская собака (молодая)", "gender": "neutral", "tags": ["military"]},
+    {"id": "Trained police dog (young)", "title": "Дрессированная полицейская собака (молодая)", "gender": "neutral", "tags": ["military"]},
     {"id": "Water filters", "title": "Фильтры для воды", "gender": "neutral", "tags": ["survival"]},
-    {"id": "3 construction lights and batteries", "title": "3 строительных фонаря и батареи", "gender": "neutral", "tags": ["craft"]},
+    {"id": "3 construction lights and batteries", "title": "3 строительных фонаря и батарейки", "gender": "neutral", "tags": ["craft"]},
     {"id": "Camcorder", "title": "Видеокамера", "gender": "neutral", "tags": ["social"]},
     {"id": "Spices and seasonings", "title": "Специи и приправы", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Medicinal herbs and roots", "title": "Лечебные травы и корешки", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Medicinal herbs and roots", "title": "Лечебные травы и корешки", "gender": "neutral", "tags": ["magic"]},
     {"id": "Powerful gaming computer", "title": "Мощный игровой компьютер", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Flash drives with movies", "title": "Флешки с фильмами", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fabrics, needles, and threads", "title": "Ткани, иголки и нитки", "gender": "neutral", "tags": ["craft"]},
-    {"id": "A lot of money and 3 SUVs", "title": "Много денег и 3 внедорожника", "gender": "neutral", "tags": ["craft"]},
+    {"id": "An SUV with a trunk full of money", "title": "Внедорожник с полным денег багажником", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Dildo", "title": "Дилдо", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "AIDS pills", "title": "Таблетки от спида", "gender": "neutral", "tags": ["medical"]},
+    {"id": "A supply of AIDS medication", "title": "Запас таблеток от СПИДа", "gender": "neutral", "tags": ["medical"]},
     {"id": "Inhaler", "title": "Ингалятор", "gender": "neutral", "tags": ["medical"]},
     {"id": "A suitcase full of drugs", "title": "Чемодан с наркотиками", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Drone", "title": "Дрон", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "A supply of antibiotics and painkillers", "title": "Запас антибиотиков и обезболивающих", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Gasoline canisters", "title": "Канистры с бензином", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "A collection of traps and poisons", "title": "Набор капканов и ядов", "gender": "neutral", "tags": ["neutral"]},
 ]
 
 FACT = [
@@ -287,10 +291,8 @@ FACT = [
     {"id": "Survival Club Leader", "title": "Лидер клуба по выживанию", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Expelled from the survival club", "title": "Исключили из клуба по выживанию", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Employee of the Year", "title": "Работник года", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "He spent 5 years in prison for taking a bribe", "title": "Сидел в тюрьме 5 лет за взятку", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Hasn't been working for the last 5 years", "title": "Не работает последние 5 лет", "gender": "neutral", "tags": ["neutral"]},
     {"id": "He appeared in a popular TV series", "title": "Снимался в популярном сериале", "gender": "neutral", "tags": ["social"]},
-    {"id": "Worked on webcam", "title": "Работала в вебкаме", "gender": "female", "tags": ["neutral"]},
     {"id": "Built this bunker", "title": "Построил этот бункер", "gender": "neutral", "tags": ["craft"]},
     {"id": "Doesn't know how to swim", "title": "Не умеет плавать", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Beat cancer", "title": "Победил рак", "gender": "neutral", "tags": ["neutral"]},
@@ -301,6 +303,21 @@ FACT = [
     {"id": "Knows how to make a water filter", "title": "Знает как сделать фильтр для воды", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Conflict-stirring provocateur", "title": "Конфликтный провокатор", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Doesn't know the local language", "title": "Не знает местного языка", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Frequent outbursts of rage", "title": "Частые вспышки ярости", "gender": "male", "tags": ["neutral"]},
+    {"id": "Completed a first aid course", "title": "Прошел курсы по первой медицинской помощи", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Homophobe", "title": "Гомофоб", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "He spent 5 years in prison for taking a bribe", "title": "Сидел в тюрьме 5 лет за взятку", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Sleepwalker", "title": "Лунатик", "gender": "neutral", "tags": ["neutral"]},
+]
+
+
+SECRET = [
+    {"id": "Virgin", "title": "Девственник", "gender": "male", "tags": ["engineering"]},
+    {"id": "Vestal", "title": "Девственница", "gender": "female", "tags": ["neutral"]},
+    {"id": "Worked on webcam", "title": "Работала в вебкаме", "gender": "female", "tags": ["neutral"]},
+    {"id": "Wears thongs", "title": "Носит стринги", "gender": "male", "tags": ["neutral"]},
+    {"id": "Killed a person", "title": "Убил человека", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Returned from the epicenter of the disaster", "title": "Вернулся из эпицентра катастрофы", "gender": "neutral", "tags": ["neutral"]},
 ]
 
 

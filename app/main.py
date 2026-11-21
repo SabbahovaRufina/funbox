@@ -3,9 +3,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from lobby import lobby_store
-from manager import manager
-from models import MIN_PLAYERS
+from .lobby import lobby_store
+from .manager import manager
+from .models import MIN_PLAYERS
+from .game.generator import generate_game
+from .game.models import CARD_FIELDS
 
 app = FastAPI(title="Jackbox Lite")
 
@@ -92,10 +94,35 @@ async def handle_host_message(code: str, msg: dict) -> None:
             return
 
         lobby.started = True
-        await manager.broadcast_all(code, {
-            "type": "game_started",
-            "data": {},
+        lobby.game = generate_game(lobby)
+        # 1) хосту — катастрофа
+        await manager.send_to_host(code, {
+            "type": "catastrophe",
+            "data": {
+                "title": lobby.game.catastrophe.title,
+                "description": lobby.game.catastrophe.description,
+                "capacity": lobby.game.capacity,
+                "players_count": lobby.count_players(),
+            },
         })
+
+        # 2) каждому игроку — его карты
+        for player_id, state in lobby.game.players.items():
+            await manager.send_to_player(code, player_id, {
+                "type": "your_cards",
+                "data": {
+                    "role_tag": state.role_tag,  # см. предупреждение ниже
+                    "gender": state.gender,
+                    "cards": [
+                        {"id": c.id, "field": c.field, "title": c.title,
+                         "description": c.description}
+                        for c in state.cards
+                    ],
+                },
+            })
+
+        # 3) всем — сигнал, что игра началась
+        await manager.broadcast_all(code, {"type": "game_started", "data": {}})
 
     elif mtype == "ping":
         await manager.send_to_host(code, {"type": "pong"})

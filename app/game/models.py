@@ -6,8 +6,8 @@ class Role:
     """Роли в игре"""
     id: str
     title: str            # "Врач", "Инженер"
-    description: str      # что делает в бункере
-    task: str             # задачи роли в игре
+    # description: str      # что делает в бункере
+    # task: str             # задачи роли в игре
 
 
 CARD_FIELDS = ("profession", "bio", "health", "hobby", "phobia", "baggage", "fact", "special")

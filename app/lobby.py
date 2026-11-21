@@ -1,7 +1,7 @@
 import random
 import string
 from typing import Optional
-from models import Lobby
+from .models import Lobby
 
 
 class LobbyStore:
