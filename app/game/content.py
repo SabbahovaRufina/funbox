@@ -152,7 +152,7 @@ BIO = [
     {"id": "Male, 20 years old", "title": "Мужчина 20 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 23 years old", "title": "Мужчина 23 года", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 25 years old", "title": "Мужчина 25 лет", "gender": "male", "tags": ["neutral"]},
-    {"id": "Male, 25 years old", "title": "Мужчина 27 лет", "gender": "male", "tags": ["neutral"]},
+    {"id": "Male, 27 years old", "title": "Мужчина 27 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 28 years old", "title": "Мужчина 28 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 30 years old", "title": "Мужчина 30 лет", "gender": "male", "tags": ["neutral"]},
     {"id": "Male, 31 years old", "title": "Мужчина 31 год", "gender": "male", "tags": ["neutral"]},
@@ -167,7 +167,7 @@ BIO = [
     {"id": "Female, 20 years old", "title": "Женщина 20 лет", "gender": "female", "tags": ["neutral"]},
     {"id": "Female, 23 years old", "title": "Женщина 23 года", "gender": "female", "tags": ["neutral"]},
     {"id": "Female, 25 years old", "title": "Женщина 25 лет", "gender": "female", "tags": ["neutral"]},
-    {"id": "Female, 25 years old", "title": "Женщина 27 лет", "gender": "female", "tags": ["neutral"]},
+    {"id": "Female, 27 years old", "title": "Женщина 27 лет", "gender": "female", "tags": ["neutral"]},
     {"id": "Female, 28 years old", "title": "Женщина 28 лет", "gender": "female", "tags": ["neutral"]},
     {"id": "Female, 30 years old", "title": "Женщина 30 лет", "gender": "female", "tags": ["neutral"]},
     {"id": "Female, 31 years old", "title": "Женщина 31 год", "gender": "female", "tags": ["neutral"]},
@@ -201,7 +201,6 @@ HOBBY = [
     {"id": "Singing", "title": "Пение", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Voyeurism", "title": "Вуайеризм", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Language learning", "title": "Изучение языков", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Voyeurism", "title": "Вуайеризм", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Tattoos", "title": "Татуировки", "gender": "neutral", "tags": ["neutral"]},
     {"id": "No hobbies", "title": "Нет хобби", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Skis", "title": "Лыжи", "gender": "neutral", "tags": ["neutral"]},
@@ -228,7 +227,6 @@ PHOBIA = [
     {"id": "Fear of public speaking", "title": "Боязнь выступлений", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fear of the dark", "title": "Боязнь темноты", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fear of doctors", "title": "Боязнь врачей", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "Fear of public speaking", "title": "Боязнь выступлений", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fear of the otherworldly", "title": "Страх потустороннего", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fear of the police", "title": "Страх полицейских", "gender": "neutral", "tags": ["neutral"]},
     {"id": "Fear of getting fat", "title": "Страх потолстеть", "gender": "neutral", "tags": ["neutral"]},
@@ -337,10 +335,13 @@ SPECIAL = [
      "description": "Если по результатам голосования решено не брать тебя в бункер, это решение отклоняется. Действует 1 раз."},
     {"id": "An eventful life story", "title": "Богатая биография", "gender": "neutral", "tags": ["neutral"],
      "description": "У тебя богатая биография. У тебя 2 факта."},
-    {"id": "An eventful life story", "title": "Богатая биография", "gender": "neutral", "tags": ["neutral"],
-     "description": "У тебя богатая биография. У тебя 2 факта."},
     {"id": "A therapeutic person", "title": "Терапевтичный человек", "gender": "neutral", "tags": ["neutral"],
      "description": "Ты очень душевный и терапевтичный. Только что ты избавил игрока от фобии."},
     {"id": "Family Ties", "title": "Семейные узы", "gender": "male", "tags": ["neutral"],
      "description": "Ты женат на игроке женского пола. Вы не можете голосовать друг против друга."},
+]
+
+
+CATASTROPHES = [
+    {"title": "Чума", "description": "По всей Земле чума. и т.д.", "role_tags": ["medical", "engineering", "survival", "social", "scout", "craft"]},
 ]

@@ -8,7 +8,6 @@ class Role:
     title: str            # "Врач", "Инженер"
     description: str      # что делает в бункере
     task: str             # задачи роли в игре
-    tags: list[str]
 
 
 CARD_FIELDS = ("profession", "bio", "health", "hobby", "phobia", "baggage", "fact", "special")
@@ -24,10 +23,12 @@ class PlayerCard:
 @dataclass
 class PlayerState:
     player_id: str
-    cards: list[PlayerCard]         # все карты игрока
-    revealed_ids: list[str]         # до 3 выбранных
-    role_ids: list[str]             # до 3 претензий
-    ready: bool = False             # подтвердил выбор карт и ролей
+    role_tag: str                    # СКРЫТО от клиента; для механик
+    gender: str
+    cards: list[PlayerCard]
+    revealed_ids: list[str] = field(default_factory=list)   # до 3, раскрыто
+    role_ids: list[str] = field(default_factory=list)       # до 3, претензии
+    ready: bool = False
 
 
 @dataclass
