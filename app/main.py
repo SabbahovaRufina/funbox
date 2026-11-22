@@ -111,7 +111,7 @@ async def handle_host_message(code: str, msg: dict) -> None:
             await manager.send_to_player(code, player_id, {
                 "type": "your_cards",
                 "data": {
-                    "role_tag": state.role_tag,  # см. предупреждение ниже
+                    "role_tag": state.role_tag,
                     "gender": state.gender,
                     "cards": [
                         {"id": c.id, "field": c.field, "title": c.title,

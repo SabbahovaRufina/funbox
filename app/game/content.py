@@ -208,7 +208,7 @@ HOBBY = [
     {"id": "Pistol shooting", "title": "Стрельба из пистолета", "gender": "neutral", "tags": ["military", "survival"]},
     {"id": "Production of homemade alcoholic beverages", "title": "Изготовление домашних алкогольных напитков", "gender": "neutral", "tags": ["military", "survival"]},
     {"id": "Hiking", "title": "Походы", "gender": "neutral", "tags": ["neutral"]},
-    {"id": "BDSM practices", "title": "БДСМ-практики", "gender": "neutral", "tags": ["neutral"]},
+    {"id": "Psychology", "title": "Психология", "gender": "neutral", "tags": ["neutral"]},
 ]
 
 
@@ -350,8 +350,8 @@ SPECIAL = [
      "description": "У тебя есть целительные силы. Конечно, получается очень редко, но ты только что вылечил игрока от болезни."},
     {"id": "A Second Chance", "title": "Второй шанс", "gender": "neutral", "tags": ["neutral"],
      "description": "Если по результатам голосования решено не брать тебя в бункер, это решение отклоняется. Действует 1 раз."},
-    {"id": "An eventful life story", "title": "Богатая биография", "gender": "neutral", "tags": ["neutral"],
-     "description": "У тебя богатая биография. У тебя 2 факта."},
+    {"id": "Narrator", "title": "Рассказчик", "gender": "neutral", "tags": ["neutral"],
+     "description": "У тебя всякое было в жизни и ты готов этим поделиться. У тебя 2 факта."},
     {"id": "A therapeutic person", "title": "Терапевтичный человек", "gender": "neutral", "tags": ["neutral"],
      "description": "Ты очень душевный и терапевтичный. Только что ты избавил игрока от фобии."},
     {"id": "Family Ties", "title": "Семейные узы", "gender": "male", "tags": ["neutral"],
