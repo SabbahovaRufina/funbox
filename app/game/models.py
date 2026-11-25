@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from enum import Enum
+import time
 
 
 @dataclass
@@ -39,11 +41,49 @@ class Catastrophe:
 
 
 @dataclass
+class Phase(str, Enum):
+    SETUP = "setup"           # карты розданы, игроки знакомятся
+    DISCUSSION = "discussion" # обсуждение, раскрытие карт
+    VOTING = "voting"         # голосование за изгнание
+    RESULTS = "results"       # итоги голосования
+    FINISHED = "finished"     # игра окончена
+
+
+@dataclass
+class Vote:
+    voter_id: str
+    target_id: str | None
+
+
+@dataclass
+class RevealRound:
+    """Раунд поочерёдного раскрытия карт."""
+    order: list[str]                    # player_id в порядке хода
+    current_index: int = 0
+    deadline: float | None = None       # time.monotonic() + duration
+    duration: int = 60                  # секунд на игрока
+    reveal_limit: int = 3               # сколько карт можно раскрыть в этот ход
+    finished: bool = False
+    round_number: int = 1               # 1-й круг → 3 карты, дальше → 1
+
+
+@dataclass
 class GameSession:
     code: str
     catastrophe: Catastrophe
     capacity: int
     roles: list[Role]
     players: dict[str, PlayerState]
-    phase: str = "setup"
+    phase: Phase = Phase.SETUP
+
+    # голосование
+    votes: dict[str, Vote] = field(default_factory=dict)  # voter_id -> Vote
+    voting_round: int = 1
+    eliminated: list[str] = field(default_factory=list)  # id изгнанных
+
+    # раскрытие карт
+    revealed: dict[str, list[str]] = field(default_factory=dict)  # player_id -> [card_id]
+
+    reveal_round: RevealRound | None = None
+    reveal_rounds_done: int = 0  # сколько кругов reveal уже прошло
 
