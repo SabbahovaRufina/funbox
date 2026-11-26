@@ -195,3 +195,74 @@ async def handle_player_message(code: str, player_id: str, msg: dict) -> None:
     if mtype == "ping":
         await manager.send_to_player(code, player_id, {"type": "pong"})
 
+
+
+async def handle_reveal_card(code: str, player_id: str, data: dict) -> None:
+    lobby = lobby_store.get(code)
+    if not lobby or not lobby.game:
+        return
+    game = lobby.game
+
+    if game.phase != Phase.REVEAL or not game.reveal_round:
+        await manager.send_to_player(code, player_id, {
+            "type": "error", "data": {"reason": "reveal_not_allowed_phase"},
+        })
+        return
+
+    r = game.reveal_round
+    if r.finished or r.current_player_id != player_id:
+        await manager.send_to_player(code, player_id, {
+            "type": "error", "data": {"reason": "not_your_turn"},
+        })
+        return
+
+    state = game.players[player_id]
+    card_id = data.get("card_id")
+    card = next((c for c in state.cards if c.id == card_id), None)
+    if not card:
+        await manager.send_to_player(code, player_id, {
+            "type": "error", "data": {"reason": "card_not_owned"},
+        })
+        return
+
+    if card_id in state.revealed_ids:
+        return  # уже раскрыта, молча игнор
+
+    # лимит на ЭТОТ ход
+    revealed_this_turn = getattr(state, "_revealed_this_turn", set())
+    if len(revealed_this_turn) >= r.reveal_limit:
+        await manager.send_to_player(code, player_id, {
+            "type": "error",
+            "data": {"reason": "turn_reveal_limit", "limit": r.reveal_limit},
+        })
+        return
+
+    state.revealed_ids.append(card_id)
+    revealed_this_turn.add(card_id)
+    state._revealed_this_turn = revealed_this_turn  # см. ниже про хранение
+    game.revealed.setdefault(player_id, []).append(card_id)
+
+    # подтверждение игроку
+    await manager.send_to_player(code, player_id, {
+        "type": "card_revealed",
+        "data": {
+            "card_id": card_id,
+            "revealed_count": len(state.revealed_ids),
+            "turn_limit": r.reveal_limit,
+            "turn_revealed": len(revealed_this_turn),
+        },
+    })
+
+    # всем — публичное событие
+    await manager.broadcast_all(code, {
+        "type": "player_revealed_card",
+        "data": {
+            "player_id": player_id,
+            "player_name": lobby.players[player_id].name,
+            "card": {
+                "id": card.id, "field": card.field,
+                "title": card.title, "description": card.description,
+            },
+        },
+    })
+

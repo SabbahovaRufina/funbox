@@ -42,10 +42,9 @@ class Catastrophe:
 
 @dataclass
 class Phase(str, Enum):
-    SETUP = "setup"           # карты розданы, игроки знакомятся
-    DISCUSSION = "discussion" # обсуждение, раскрытие карт
+    SETUP = "setup"           # генерация катастрофы и раздача карт
+    REVEAL = "reveal"         # раскрытие карт и таймер
     VOTING = "voting"         # голосование за изгнание
-    RESULTS = "results"       # итоги голосования
     FINISHED = "finished"     # игра окончена
 
 

@@ -1,4 +1,3 @@
-# app/game/reveal.py
 import time, random
 from .models import GameSession, RevealRound, Phase
 
@@ -11,15 +10,16 @@ def start_reveal_round(game: GameSession, duration: int = 60) -> RevealRound:
     order = list(game.players.keys())
     random.shuffle(order)
 
-    game.reveal_round = RevealRound(
+    rr = RevealRound(
         order=order,
         duration=duration,
         reveal_limit=reveal_limit,
         round_number=round_number,
         deadline=time.monotonic() + duration,
     )
-    game.phase = Phase.DISCUSSION  # или отдельная Phase.REVEAL, см. ниже
-    return game.reveal_round
+    game.reveal_round = rr
+    game.phase = Phase.REVEAL
+    return rr
 
 
 def remaining(game: GameSession) -> float:
