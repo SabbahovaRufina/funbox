@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Host — Jackbox Lite</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; }
+  body { font-family: system-ui, sans-serif; max-width: 960px; margin: 32px auto; padding: 0 16px; }
   h1 { margin-bottom: 8px; }
   .code { font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #2b6cb0; }
   button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
@@ -17,9 +17,19 @@
   .status.ok { color: #2f855a; }
   .status.bad { color: #c53030; }
   .hint { font-size: 14px; color: #d97706; margin-left: 12px; }
-  .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin: 8px 0; }
+  .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin: 6px 0; }
   .hidden { display: none; }
   .catastrophe { background: #fff5f5; border-color: #fc8181; }
+  .reveal-panel { border: 1px solid #cbd5e0; border-radius: 10px; padding: 16px; margin: 16px 0; background: #f7fafc; }
+  .timer { font-size: 22px; font-weight: bold; color: #2b6cb0; }
+  .timer.low { color: #c53030; }
+  .player-revealed { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 8px 0; background: #fff; }
+  .player-revealed h4 { margin: 0 0 6px 0; font-size: 15px; }
+  .card-line { font-size: 13px; padding: 2px 0; }
+  .card-line b { text-transform: capitalize; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #edf2f7; color: #4a5568; margin-left: 6px; }
+  .badge.auto { background: #fefcbf; color: #975a16; }
+  .current-turn { font-size: 16px; margin: 6px 0; }
 </style>
 </head>
 <body>
@@ -49,17 +59,51 @@
   <div id="catastrophe" class="card catastrophe"></div>
 </div>
 
+<!-- Reveal -->
+<div id="reveal-box" class="hidden">
+  <h2>Раскрытие карт — круг <span id="round-number">1</span></h2>
+  <p class="muted">Лимит карт за ход: <span id="reveal-limit">3</span></p>
+  <div class="current-turn">
+    Сейчас ходит: <b id="current-player">—</b>
+    <span class="timer" id="timer">—</span>
+  </div>
+  <div id="revealed-list" class="reveal-panel">
+    <p class="muted" id="revealed-empty">Пока никто ничего не раскрыл…</p>
+  </div>
+</div>
+
+<!-- Фаза -->
+<div id="phase-box" class="hidden">
+  <h2>Фаза: <span id="phase-name">—</span></h2>
+</div>
+
 <pre id="log"></pre>
 
 <script>
-// Должно совпадать с MIN_PLAYERS в models.py
 const MIN_PLAYERS = 6;
 
 let ws = null;
 let currentCode = null;
 
+// состояние reveal
+const playerNames = {};      // player_id -> name
+const revealedCards = {};    // player_id -> [{id, field, title, description}]
+let timerInterval = null;
+
 const $ = (id) => document.getElementById(id);
-const log = (s) => { $('log').textContent += s + '\n'; };
+const log = (s) => { $('log').textContent += s + '\n'; $('log').scrollTop = $('log').scrollHeight; };
+
+const FIELD_TITLES = {
+  profession: 'Профессия',
+  bio: 'Биография',
+  health: 'Здоровье',
+  hobby: 'Хобби',
+  phobia: 'Фобия',
+  baggage: 'Багаж',
+  fact: 'Факт',
+  special: 'Особое условие',
+  secret: 'Секрет',
+};
 
 function setStatus(text, cls) {
   const el = $('ws-status');
@@ -71,6 +115,9 @@ function renderPlayers(players) {
   const ul = $('players');
   ul.innerHTML = '';
   $('count').textContent = players.length;
+
+  // обновляем имена
+  for (const p of players) playerNames[p.id] = p.name;
 
   if (players.length === 0) {
     const li = document.createElement('li');
@@ -100,10 +147,87 @@ function renderPlayers(players) {
 function renderCatastrophe(data) {
   $('catastrophe-box').classList.remove('hidden');
   $('catastrophe').innerHTML =
-    `<h3>${data.title}</h3>` +
-    `<p>${data.description}</p>` +
+    `<h3>${escapeHtml(data.title)}</h3>` +
+    `<p>${escapeHtml(data.description)}</p>` +
     `<p class="muted">Мест в бункере: ${data.capacity} из ${data.players_count}</p>`;
 }
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+}
+
+// --- таймер ---
+
+function startTimer(seconds) {
+  stopTimer();
+  let left = Math.max(0, Math.floor(seconds));
+  $('timer').textContent = `${left} с`;
+  $('timer').classList.toggle('low', left <= 10);
+
+  timerInterval = setInterval(() => {
+    left -= 1;
+    if (left <= 0) {
+      $('timer').textContent = '0 с';
+      $('timer').classList.add('low');
+      stopTimer();
+      return;
+    }
+    $('timer').textContent = `${left} с`;
+    $('timer').classList.toggle('low', left <= 10);
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+// --- reveal ---
+
+function showRevealBox() {
+  $('reveal-box').classList.remove('hidden');
+}
+
+function setCurrentPlayer(playerId) {
+  if (!playerId) { $('current-player').textContent = '—'; return; }
+  $('current-player').textContent = playerNames[playerId] || playerId;
+}
+
+function renderRevealedList() {
+  const box = $('revealed-list');
+  const any = Object.keys(revealedCards).some(pid => revealedCards[pid].length > 0);
+  if (!any) {
+    box.innerHTML = '<p class="muted" id="revealed-empty">Пока никто ничего не раскрыл…</p>';
+    return;
+  }
+  box.innerHTML = '';
+  for (const pid of Object.keys(revealedCards)) {
+    const cards = revealedCards[pid];
+    if (!cards.length) continue;
+    const div = document.createElement('div');
+    div.className = 'player-revealed';
+    const name = playerNames[pid] || pid;
+    let inner = `<h4>${escapeHtml(name)}</h4>`;
+    for (const c of cards) {
+      const fieldTitle = FIELD_TITLES[c.field] || c.field;
+      const autoBadge = c.auto ? '<span class="badge auto">авто</span>' : '';
+      inner += `<div class="card-line"><b>${escapeHtml(fieldTitle)}</b>: ${escapeHtml(c.title)}${autoBadge}</div>`;
+    }
+    div.innerHTML = inner;
+    box.appendChild(div);
+  }
+}
+
+function addRevealedCards(playerId, cards, auto) {
+  if (!revealedCards[playerId]) revealedCards[playerId] = [];
+  for (const c of cards) {
+    revealedCards[playerId].push({ ...c, auto: !!auto });
+  }
+  renderRevealedList();
+}
+
+// --- ws ---
 
 function connectHost(code) {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -119,30 +243,59 @@ function connectHost(code) {
     try { msg = JSON.parse(e.data); } catch { log('не JSON: ' + e.data); return; }
     log('← ' + JSON.stringify(msg));
 
-    if (msg.type === 'players_update') {
-      renderPlayers(msg.data || []);
-    } else if (msg.type === 'catastrophe') {
-      renderCatastrophe(msg.data);
-    } else if (msg.type === 'game_started') {
+    const t = msg.type;
+    const d = msg.data || {};
+
+    if (t === 'players_update') {
+      renderPlayers(d);
+    } else if (t === 'catastrophe') {
+      renderCatastrophe(d);
+    } else if (t === 'game_started') {
       $('start').disabled = true;
       $('start-hint').textContent = '';
       setStatus('игра началась', 'ok');
-    } else if (msg.type === 'error') {
-      if (msg.data?.reason === 'not_enough_players') {
-        alert(`Недостаточно игроков: нужно минимум ${msg.data.need}, сейчас ${msg.data.have}`);
+    } else if (t === 'reveal_started') {
+      showRevealBox();
+      $('round-number').textContent = d.round_number;
+      $('reveal-limit').textContent = d.reveal_limit;
+      setCurrentPlayer(d.current_player_id);
+      startTimer(d.deadline_in);
+    } else if (t === 'reveal_turn') {
+      showRevealBox();
+      setCurrentPlayer(d.current_player_id);
+      startTimer(d.deadline_in);
+    } else if (t === 'cards_revealed') {
+      addRevealedCards(d.player_id, d.cards || [], false);
+    } else if (t === 'reveal_timeout') {
+      addRevealedCards(d.player_id, d.revealed || [], true);
+      // если ход перешёл — бэкенд пришлёт reveal_turn отдельно, но на случай нет:
+      if (d.next_player_id) setCurrentPlayer(d.next_player_id);
+    } else if (t === 'reveal_round_finished') {
+      stopTimer();
+      log(`Круг ${d.round_number} завершён`);
+    } else if (t === 'phase_changed') {
+      $('phase-box').classList.remove('hidden');
+      $('phase-name').textContent = d.phase;
+      stopTimer();
+    } else if (t === 'error') {
+      if (d.reason === 'not_enough_players') {
+        alert(`Недостаточно игроков: нужно минимум ${d.need}, сейчас ${d.have}`);
         $('start').disabled = true;
-        $('start-hint').textContent = `Нужно минимум ${msg.data.need} игроков`;
-      } else if (msg.data?.reason === 'already_started') {
+        $('start-hint').textContent = `Нужно минимум ${d.need} игроков`;
+      } else if (d.reason === 'already_started') {
         log('игра уже началась');
+      } else {
+        log('error: ' + d.reason);
       }
-    } else if (msg.type === 'pong') {
-      // ответ на ping
+    } else if (t === 'pong') {
+      // ok
     }
   };
 
   ws.onclose = (e) => {
     setStatus(`закрыто (${e.code})`, 'bad');
     log(`ws закрыт: code=${e.code} reason=${e.reason || '-'}`);
+    stopTimer();
 
     if (e.code === 4004) {
       $('start').disabled = true;
@@ -193,3 +346,4 @@ $('start').onclick = () => {
 </script>
 </body>
 </html>
+

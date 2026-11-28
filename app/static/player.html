@@ -9,10 +9,20 @@
   #welcome { text-align: center; margin-top: 40px; }
   input { padding: 8px; font-size: 16px; margin: 4px 0; width: 100%; box-sizing: border-box; }
   button { padding: 10px 16px; font-size: 16px; cursor: pointer; margin-top: 8px; }
-  .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 6px 0; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 6px 0; background: #fff; }
   .card b { text-transform: capitalize; }
+  .card.selectable { cursor: pointer; transition: border-color .15s, background .15s; }
+  .card.selectable:hover { border-color: #90cdf4; }
+  .card.selected { border-color: #2b6cb0; background: #ebf8ff; }
+  .card.revealed { opacity: .6; background: #f7fafc; border-style: dashed; }
   .muted { color: #888; font-size: 13px; }
   #log { color: #aaa; font-size: 11px; max-height: 120px; overflow: auto; }
+  .timer { font-size: 20px; font-weight: bold; color: #2b6cb0; }
+  .timer.low { color: #c53030; }
+  .panel { border: 1px solid #cbd5e0; border-radius: 10px; padding: 14px; margin: 14px 0; background: #f7fafc; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #edf2f7; color: #4a5568; margin-left: 6px; }
+  .selected-counter { font-weight: bold; color: #2b6cb0; }
 </style>
 </head>
 <body>
@@ -33,11 +43,33 @@
   <p>Ждём начала игры…</p>
 </div>
 
-<!-- Карты игрока -->
+<!-- Карты игрока (пассивный обзор) -->
 <div id="cards-screen" class="hidden">
   <h2>Твои карты</h2>
   <p class="muted">Пол: <span id="player-gender">—</span></p>
   <div id="cards"></div>
+</div>
+
+<!-- Reveal: ожидание -->
+<div id="reveal-waiting" class="hidden">
+  <div class="panel">
+    <h3>Раскрытие карт</h3>
+    <p>Сейчас ходит: <b id="reveal-waiting-name">—</b></p>
+    <p class="timer" id="reveal-waiting-timer">—</p>
+    <p class="muted">Жди своего хода…</p>
+  </div>
+</div>
+
+<!-- Reveal: мой ход -->
+<div id="reveal-my-turn" class="hidden">
+  <div class="panel">
+    <h3>Твой ход!</h3>
+    <p>Выбери <b>до <span id="reveal-limit">3</span></b> карт для раскрытия.</p>
+    <p>Выбрано: <span class="selected-counter" id="selected-count">0</span> / <span id="reveal-limit-2">3</span></p>
+    <p class="timer" id="reveal-my-timer">—</p>
+    <div id="reveal-cards"></div>
+    <button id="reveal-submit" disabled>Раскрыть</button>
+  </div>
 </div>
 
 <pre id="log"></pre>
@@ -46,10 +78,19 @@
 const joinScreen = document.getElementById('join-screen');
 const welcomeScreen = document.getElementById('welcome');
 const cardsScreen = document.getElementById('cards-screen');
+const revealWaiting = document.getElementById('reveal-waiting');
+const revealMyTurn = document.getElementById('reveal-my-turn');
 const logEl = document.getElementById('log');
-const log = (s) => { logEl.textContent += s + '\n'; };
+const log = (s) => { logEl.textContent += s + '\n'; logEl.scrollTop = logEl.scrollHeight; };
 
 let ws = null;
+let myId = null;
+let myCards = [];              // [{id, field, title, description}]
+let revealedIds = new Set();   // что я уже раскрыл (глобально)
+let selectedIds = new Set();   // что выбрал в этом ходе
+let currentLimit = 3;
+let timerInterval = null;
+let myTurn = false;
 
 const FIELD_TITLES = {
   profession: 'Профессия',
@@ -63,6 +104,39 @@ const FIELD_TITLES = {
   secret: 'Секрет',
 };
 
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+}
+
+// --- таймер ---
+
+function startTimer(el, seconds) {
+  stopTimer();
+  let left = Math.max(0, Math.floor(seconds));
+  el.textContent = `${left} с`;
+  el.classList.toggle('low', left <= 10);
+
+  timerInterval = setInterval(() => {
+    left -= 1;
+    if (left <= 0) {
+      el.textContent = '0 с';
+      el.classList.add('low');
+      stopTimer();
+      return;
+    }
+    el.textContent = `${left} с`;
+    el.classList.toggle('low', left <= 10);
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+// --- карты ---
+
 function renderCards(data) {
   welcomeScreen.classList.add('hidden');
   cardsScreen.classList.remove('hidden');
@@ -71,19 +145,115 @@ function renderCards(data) {
     data.gender === 'male' ? 'мужской' :
     data.gender === 'female' ? 'женский' : 'нейтральный';
 
+  myCards = data.cards || [];
+
   const box = document.getElementById('cards');
   box.innerHTML = '';
-
-  for (const c of data.cards) {
+  for (const c of myCards) {
     const div = document.createElement('div');
     div.className = 'card';
     const fieldTitle = FIELD_TITLES[c.field] || c.field;
     div.innerHTML =
-      `<b>${fieldTitle}</b>: ${c.title}` +
-      (c.description ? `<div class="muted">${c.description}</div>` : '');
+      `<b>${escapeHtml(fieldTitle)}</b>: ${escapeHtml(c.title)}` +
+      (c.description ? `<div class="muted">${escapeHtml(c.description)}</div>` : '');
     box.appendChild(div);
   }
 }
+
+function renderRevealCards() {
+  const box = document.getElementById('reveal-cards');
+  box.innerHTML = '';
+
+  for (const c of myCards) {
+    const isRevealed = revealedIds.has(c.id);
+    const isSelected = selectedIds.has(c.id);
+
+    const div = document.createElement('div');
+    div.className = 'card';
+    if (isRevealed) div.classList.add('revealed');
+    else div.classList.add('selectable');
+    if (isSelected) div.classList.add('selected');
+
+    const fieldTitle = FIELD_TITLES[c.field] || c.field;
+    const badge = isRevealed ? '<span class="badge">раскрыто</span>' : '';
+    div.innerHTML =
+      `<b>${escapeHtml(fieldTitle)}</b>: ${escapeHtml(c.title)}${badge}` +
+      (c.description ? `<div class="muted">${escapeHtml(c.description)}</div>` : '');
+
+    if (!isRevealed) {
+      div.onclick = () => toggleSelect(c.id);
+    }
+    box.appendChild(div);
+  }
+
+  updateSelectedCounter();
+}
+
+function toggleSelect(cardId) {
+  if (!myTurn) return;
+  if (revealedIds.has(cardId)) return;
+
+  if (selectedIds.has(cardId)) {
+    selectedIds.delete(cardId);
+  } else {
+    if (selectedIds.size >= currentLimit) {
+      // уже выбрали максимум — игнор
+      return;
+    }
+    selectedIds.add(cardId);
+  }
+  renderRevealCards();
+}
+
+function updateSelectedCounter() {
+  document.getElementById('selected-count').textContent = selectedIds.size;
+  const btn = document.getElementById('reveal-submit');
+  btn.disabled = !myTurn || selectedIds.size === 0 || selectedIds.size > currentLimit;
+}
+
+// --- reveal flow ---
+
+function showWaiting(playerId, seconds) {
+  myTurn = false;
+  selectedIds.clear();
+  revealMyTurn.classList.add('hidden');
+  revealWaiting.classList.remove('hidden');
+  stopTimer();
+
+  const nameEl = document.getElementById('reveal-waiting-name');
+  nameEl.textContent = playerId === myId ? 'ты' : (playerId || '—');
+
+  if (playerId === myId) {
+    // на самом деле это мой ход — покажем экран выбора
+    showMyTurn(seconds);
+    return;
+  }
+  startTimer(document.getElementById('reveal-waiting-timer'), seconds);
+}
+
+function showMyTurn(seconds) {
+  myTurn = true;
+  selectedIds.clear();
+  revealWaiting.classList.add('hidden');
+  revealMyTurn.classList.remove('hidden');
+  stopTimer();
+  renderRevealCards();
+  startTimer(document.getElementById('reveal-my-timer'), seconds);
+}
+
+function submitReveal() {
+  if (!myTurn) return;
+  if (selectedIds.size === 0) return;
+  if (selectedIds.size > currentLimit) return;
+
+  const ids = Array.from(selectedIds);
+  ws.send(JSON.stringify({ type: 'reveal_cards', data: { card_ids: ids } }));
+  log('→ reveal_cards ' + JSON.stringify(ids));
+}
+
+document.getElementById('reveal-submit').onclick = submitReveal;
+
+// --- join ---
 
 document.getElementById('join').onclick = () => {
   const name = document.getElementById('name').value.trim();
@@ -107,27 +277,87 @@ document.getElementById('join').onclick = () => {
     try { msg = JSON.parse(e.data); } catch { log('не JSON: ' + e.data); return; }
     log('← ' + JSON.stringify(msg));
 
-    if (msg.type === 'welcome') {
-      sessionStorage.setItem('player_id', msg.data.player_id);
-      sessionStorage.setItem('player_name', msg.data.name);
+    const t = msg.type;
+    const d = msg.data || {};
+
+    if (t === 'welcome') {
+      myId = d.player_id;
+      sessionStorage.setItem('player_id', myId);
+      sessionStorage.setItem('player_name', d.name);
       sessionStorage.setItem('lobby_code', code);
 
-      document.getElementById('welcome-name').textContent = msg.data.name;
+      document.getElementById('welcome-name').textContent = d.name;
       document.getElementById('welcome-code').textContent = code;
       joinScreen.classList.add('hidden');
       welcomeScreen.classList.remove('hidden');
-    } else if (msg.type === 'your_cards') {
-      sessionStorage.setItem('my_cards', JSON.stringify(msg.data));
-      renderCards(msg.data);
-    } else if (msg.type === 'game_started') {
+    } else if (t === 'your_cards') {
+      sessionStorage.setItem('my_cards', JSON.stringify(d));
+      renderCards(d);
+    } else if (t === 'game_started') {
       log('игра началась');
-    } else if (msg.type === 'pong') {
-      // ответ на ping
+    } else if (t === 'reveal_started') {
+      currentLimit = d.reveal_limit;
+      document.getElementById('reveal-limit').textContent = d.reveal_limit;
+      document.getElementById('reveal-limit-2').textContent = d.reveal_limit;
+      renderRevealCards();
+      showWaiting(d.current_player_id, d.deadline_in);
+    } else if (t === 'reveal_turn') {
+      // лимит мог измениться только в reveal_started, но на всякий случай
+      showWaiting(d.current_player_id, d.deadline_in);
+    } else if (t === 'reveal_ack') {
+      for (const id of d.revealed || []) revealedIds.add(id);
+      selectedIds.clear();
+      renderRevealCards();
+      // ход завершён — ждём reveal_turn
+      myTurn = false;
+      stopTimer();
+      document.getElementById('reveal-my-turn').classList.add('hidden');
+      document.getElementById('reveal-waiting').classList.remove('hidden');
+      document.getElementById('reveal-waiting-name').textContent = '—';
+      document.getElementById('reveal-waiting-timer').textContent = '—';
+    } else if (t === 'cards_revealed') {
+      // кто-то раскрыл — нас не касается, но можно залогировать
+      log(`раскрыл ${d.player_id}: ${(d.cards || []).length} карт`);
+    } else if (t === 'reveal_timeout') {
+      if (d.player_id === myId) {
+        for (const id of d.revealed || []) revealedIds.add(id);
+        selectedIds.clear();
+        renderRevealCards();
+        myTurn = false;
+        stopTimer();
+        document.getElementById('reveal-my-turn').classList.add('hidden');
+        document.getElementById('reveal-waiting').classList.remove('hidden');
+        document.getElementById('reveal-waiting-timer').textContent = 'время вышло';
+      }
+    } else if (t === 'reveal_round_finished') {
+      log(`Круг ${d.round_number} завершён`);
+      stopTimer();
+    } else if (t === 'phase_changed') {
+      stopTimer();
+      revealWaiting.classList.add('hidden');
+      revealMyTurn.classList.add('hidden');
+      log('Фаза: ' + d.phase);
+      // здесь позже можно показать экран голосования
+    } else if (t === 'error') {
+      const r = d.reason;
+      if (r === 'not_your_turn') {
+        log('не твой ход');
+      } else if (r === 'wrong_phase') {
+        log('сейчас не фаза раскрытия');
+      } else {
+        log('error: ' + r);
+      }
+      // не блокируем UI, но сбрасываем выбор
+      selectedIds.clear();
+      renderRevealCards();
+    } else if (t === 'pong') {
+      // ok
     }
   };
 
   ws.onclose = (e) => {
     log(`closed: ${e.code}`);
+    stopTimer();
     if (e.code === 4001) document.getElementById('error').textContent = 'Пустое имя';
     if (e.code === 4002) document.getElementById('error').textContent = 'Имя занято';
     if (e.code === 4003) document.getElementById('error').textContent = 'Лобби недоступно (полное / игра началась / нет хоста)';

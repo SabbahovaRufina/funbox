@@ -2,6 +2,7 @@ import random
 from app.models import Lobby
 from app.game.models import GameSession, Catastrophe, Role, PlayerCard, PlayerState, CARD_FIELDS
 from app.game.content import profession, HEALTH, BIO, HOBBY, PHOBIA, BAGGAGE, FACT, SPECIAL, CATASTROPHES, ROLES
+from app.game.models import Phase
 import math
 
 
@@ -146,5 +147,5 @@ def generate_game(lobby: Lobby) -> GameSession:
         capacity=capacity,
         roles=role_pool,
         players=players,
-        phase="setup",
+        phase=Phase.SETUP,
     )

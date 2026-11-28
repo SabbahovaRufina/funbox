@@ -2,17 +2,29 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+import asyncio
 
 from .lobby import lobby_store
 from .manager import manager
 from .models import MIN_PLAYERS
 from .game.generator import generate_game
-from .game.models import CARD_FIELDS
+from .game import reveal as reveal_mod
+from .game.models import Phase
 
 app = FastAPI(title="Jackbox Lite")
 
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+# реестр фоновых задач по коду лобби (чтобы не плодить дубли)
+_reveal_tasks: dict[str, asyncio.Task] = {}
+# локи на игру (по коду лобби) — защита от гонок reveal
+_game_locks: dict[str, asyncio.Lock] = {}
+
+
+def _game_lock(code: str) -> asyncio.Lock:
+    return _game_locks.setdefault(code, asyncio.Lock())
 
 
 @app.get("/")
@@ -34,6 +46,57 @@ async def lobby_exists(code: str):
     """Проверяет, существует ли лобби с указанным кодом."""
     lobby = lobby_store.get(code)
     return {"exists": lobby is not None}
+
+
+def _card_public(game, player_id: str, card_id: str) -> dict:
+    st = game.players[player_id]
+    for c in st.cards:
+        if c.id == card_id:
+            return {"id": c.id, "field": c.field,
+                    "title": c.title, "description": c.description}
+    return {"id": card_id}
+
+
+async def _on_reveal_round_finished(code: str) -> None:
+    lobby = lobby_store.get(code)
+    if not lobby or not lobby.game:
+        return
+    game = lobby.game
+
+    await manager.broadcast_all(code, {
+        "type": "reveal_round_finished",
+        "data": {
+            "round_number": game.reveal_round.round_number,
+            "rounds_done": game.reveal_rounds_done,
+        },
+    })
+
+    # Дальше два варианта:
+    #  A) авто-старт следующего круга (пока у кого-то есть нераскрытые карты)
+    #  B) ждать команды хоста
+    # Возьмём A с лимитом: пока есть у кого раскрывать — следующий круг.
+    has_unrevealed = any(
+        len(reveal_mod.revealed_for(game, pid)) < len(st.cards)
+        for pid, st in game.players.items()
+    )
+    if has_unrevealed:
+        rr = reveal_mod.start_reveal_round(game, duration=60)
+        await manager.broadcast_all(code, {
+            "type": "reveal_started",
+            "data": {
+                "round_number": rr.round_number,
+                "reveal_limit": rr.reveal_limit,
+                "order": rr.order,
+                "current_player_id": reveal_mod.current_player_id(game),
+                "deadline_in": rr.duration,
+            },
+        })
+        _start_reveal_timeout_task(code)
+    else:
+        game.phase = Phase.VOTING
+        await manager.broadcast_all(code, {
+            "type": "phase_changed", "data": {"phase": "voting"},
+        })
 
 
 # --- WebSocket: хост ---
@@ -68,6 +131,12 @@ async def ws_host(websocket: WebSocket, code: str):
         if lobby:
             lobby.host_connected = False
         lobby_store.delete_if_empty(code) # у меня еще где-то есть очистка лобби?
+
+        if not lobby_store.get(code):
+            t = _reveal_tasks.pop(code, None)
+            if t and not t.done():
+                t.cancel()
+            _game_locks.pop(code, None)
 
 
 async def handle_host_message(code: str, msg: dict) -> None:
@@ -123,6 +192,20 @@ async def handle_host_message(code: str, msg: dict) -> None:
 
         # 3) всем — сигнал, что игра началась
         await manager.broadcast_all(code, {"type": "game_started", "data": {}})
+
+        # 4) стартуем первый круг reveal
+        rr = reveal_mod.start_reveal_round(lobby.game, duration=60)
+        await manager.broadcast_all(code, {
+            "type": "reveal_started",
+            "data": {
+                "round_number": rr.round_number,
+                "reveal_limit": rr.reveal_limit,
+                "order": rr.order,
+                "current_player_id": reveal_mod.current_player_id(lobby.game),
+                "deadline_in": rr.duration,
+            },
+        })
+        _start_reveal_timeout_task(code)
 
     elif mtype == "ping":
         await manager.send_to_host(code, {"type": "pong"})
@@ -188,81 +271,103 @@ async def ws_player(websocket: WebSocket, code: str, name: str = "Player"):
             })
         lobby_store.delete_if_empty(code)
 
+        if not lobby_store.get(code):
+            t = _reveal_tasks.pop(code, None)
+            if t and not t.done():
+                t.cancel()
+            _game_locks.pop(code, None)
+
 
 async def handle_player_message(code: str, player_id: str, msg: dict) -> None:
-    """Обрабатывает сообщение от игрока по его типу."""
     mtype = msg.get("type")
+
     if mtype == "ping":
         await manager.send_to_player(code, player_id, {"type": "pong"})
+        return
+
+    if mtype == "reveal_cards":
+        lobby = lobby_store.get(code)
+        if not lobby or not lobby.game:
+            return
+        game = lobby.game
+        if game.phase != Phase.REVEAL:
+            await manager.send_to_player(code, player_id, {
+                "type": "error", "data": {"reason": "wrong_phase"},
+            })
+            return
+
+        card_ids = msg.get("data", {}).get("card_ids", [])
+        if not isinstance(card_ids, list):
+            card_ids = []
+
+        async with _game_lock(code):
+            result = reveal_mod.apply_reveal(game, player_id, card_ids)
+
+        if not result.ok:
+            await manager.send_to_player(code, player_id, {
+                "type": "error", "data": {"reason": result.reason},
+            })
+            return
+
+        # подтверждение игроку
+        await manager.send_to_player(code, player_id, {
+            "type": "reveal_ack",
+            "data": {"revealed": result.revealed},
+        })
+
+        # всем — что раскрыто (хосту нужно для экрана)
+        await manager.broadcast_all(code, {
+            "type": "cards_revealed",
+            "data": {
+                "player_id": player_id,
+                "cards": [
+                    _card_public(game, player_id, cid)
+                    for cid in result.revealed
+                ],
+            },
+        })
+
+        if result.round_finished:
+            await _on_reveal_round_finished(code)
+        elif result.next_player_id:
+            await manager.broadcast_all(code, {
+                "type": "reveal_turn",
+                "data": {
+                    "current_player_id": result.next_player_id,
+                    "deadline_in": game.reveal_round.duration
+                    if game.reveal_round else 0,
+                },
+            })
+            # таймаут-таск сам подхватит новый дедлайн (цикл в run_reveal_timeout)
 
 
+def _start_reveal_timeout_task(code: str) -> None:
+    old = _reveal_tasks.pop(code, None)
+    if old and not old.done():
+        old.cancel()
 
-async def handle_reveal_card(code: str, player_id: str, data: dict) -> None:
+    async def on_event(c: str, evt: dict) -> None:
+        await manager.broadcast_all(c, evt)
+        # если ход перешёл — сообщим всем, чей ход
+        if "next_player_id" in evt["data"] and evt["data"]["next_player_id"]:
+            lobby = lobby_store.get(c)
+            if lobby and lobby.game:
+                await manager.broadcast_all(c, {
+                    "type": "reveal_turn",
+                    "data": {
+                        "current_player_id": evt["data"]["next_player_id"],
+                        "deadline_in": lobby.game.reveal_round.duration
+                        if lobby.game.reveal_round else 0,
+                    },
+                })
+
     lobby = lobby_store.get(code)
     if not lobby or not lobby.game:
         return
-    game = lobby.game
 
-    if game.phase != Phase.REVEAL or not game.reveal_round:
-        await manager.send_to_player(code, player_id, {
-            "type": "error", "data": {"reason": "reveal_not_allowed_phase"},
-        })
-        return
-
-    r = game.reveal_round
-    if r.finished or r.current_player_id != player_id:
-        await manager.send_to_player(code, player_id, {
-            "type": "error", "data": {"reason": "not_your_turn"},
-        })
-        return
-
-    state = game.players[player_id]
-    card_id = data.get("card_id")
-    card = next((c for c in state.cards if c.id == card_id), None)
-    if not card:
-        await manager.send_to_player(code, player_id, {
-            "type": "error", "data": {"reason": "card_not_owned"},
-        })
-        return
-
-    if card_id in state.revealed_ids:
-        return  # уже раскрыта, молча игнор
-
-    # лимит на ЭТОТ ход
-    revealed_this_turn = getattr(state, "_revealed_this_turn", set())
-    if len(revealed_this_turn) >= r.reveal_limit:
-        await manager.send_to_player(code, player_id, {
-            "type": "error",
-            "data": {"reason": "turn_reveal_limit", "limit": r.reveal_limit},
-        })
-        return
-
-    state.revealed_ids.append(card_id)
-    revealed_this_turn.add(card_id)
-    state._revealed_this_turn = revealed_this_turn  # см. ниже про хранение
-    game.revealed.setdefault(player_id, []).append(card_id)
-
-    # подтверждение игроку
-    await manager.send_to_player(code, player_id, {
-        "type": "card_revealed",
-        "data": {
-            "card_id": card_id,
-            "revealed_count": len(state.revealed_ids),
-            "turn_limit": r.reveal_limit,
-            "turn_revealed": len(revealed_this_turn),
-        },
-    })
-
-    # всем — публичное событие
-    await manager.broadcast_all(code, {
-        "type": "player_revealed_card",
-        "data": {
-            "player_id": player_id,
-            "player_name": lobby.players[player_id].name,
-            "card": {
-                "id": card.id, "field": card.field,
-                "title": card.title, "description": card.description,
-            },
-        },
-    })
-
+    task = asyncio.create_task(
+        reveal_mod.run_reveal_timeout(
+            lobby.game, code, on_event, _game_lock(code)
+        )
+    )
+    _reveal_tasks[code] = task

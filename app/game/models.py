@@ -73,7 +73,7 @@ class GameSession:
     capacity: int
     roles: list[Role]
     players: dict[str, PlayerState]
-    phase: Phase = Phase.SETUP
+    phase: Phase = field(default_factory=lambda: Phase.SETUP)
 
     # голосование
     votes: dict[str, Vote] = field(default_factory=dict)  # voter_id -> Vote
