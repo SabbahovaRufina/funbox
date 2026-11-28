@@ -145,24 +145,20 @@ def apply_reveal(
 
     revealed_now = picked  # что реально добавили в этом вызове
 
-    # ход считается завершённым, когда игрок раскрыл свой лимит
-    # (или auto=True — тогда точно завершаем)
-    turn_done = auto or len(already) >= r.reveal_limit
+    # Обычное раскрытие от игрока НЕ завершает ход:
+    # игрок ещё должен успеть объяснить свой выбор. Ход двигает только таймаут.
+    if not auto:
+        return RevealResult(ok=True, revealed=revealed_now, auto=False)
 
-    if not turn_done:
-        # игрок ещё может раскрывать в этом ходе
-        return RevealResult(ok=True, revealed=revealed_now, auto=auto)
-
-    # --- завершаем ход ---
+    # --- auto=True: таймаут, завершаем ход ---
     step = advance(game)
     if step == "finished":
         return RevealResult(
-            ok=True, revealed=revealed_now, auto=auto,
+            ok=True, revealed=revealed_now, auto=True,
             round_finished=True, next_player_id=None,
         )
-
     return RevealResult(
-        ok=True, revealed=revealed_now, auto=auto,
+        ok=True, revealed=revealed_now, auto=True,
         round_finished=False, next_player_id=current_player_id(game),
     )
 

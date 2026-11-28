@@ -24,6 +24,7 @@ _game_locks: dict[str, asyncio.Lock] = {}
 
 
 def _game_lock(code: str) -> asyncio.Lock:
+    """Возвращает asyncio.Lock для указанного лобби, создавая его при первом обращении."""
     return _game_locks.setdefault(code, asyncio.Lock())
 
 
@@ -46,58 +47,6 @@ async def lobby_exists(code: str):
     """Проверяет, существует ли лобби с указанным кодом."""
     lobby = lobby_store.get(code)
     return {"exists": lobby is not None}
-
-
-def _card_public(game, player_id: str, card_id: str) -> dict:
-    st = game.players[player_id]
-    for c in st.cards:
-        if c.id == card_id:
-            return {"id": c.id, "field": c.field,
-                    "title": c.title, "description": c.description}
-    return {"id": card_id}
-
-
-async def _on_reveal_round_finished(code: str) -> None:
-    lobby = lobby_store.get(code)
-    if not lobby or not lobby.game:
-        return
-    game = lobby.game
-
-    await manager.broadcast_all(code, {
-        "type": "reveal_round_finished",
-        "data": {
-            "round_number": game.reveal_round.round_number,
-            "rounds_done": game.reveal_rounds_done,
-        },
-    })
-
-    # Дальше два варианта:
-    #  A) авто-старт следующего круга (пока у кого-то есть нераскрытые карты)
-    #  B) ждать команды хоста
-    # Возьмём A с лимитом: пока есть у кого раскрывать — следующий круг.
-    has_unrevealed = any(
-        len(reveal_mod.revealed_for(game, pid)) < len(st.cards)
-        for pid, st in game.players.items()
-    )
-    if has_unrevealed:
-        rr = reveal_mod.start_reveal_round(game, duration=60)
-        await manager.broadcast_all(code, {
-            "type": "reveal_started",
-            "data": {
-                "round_number": rr.round_number,
-                "reveal_limit": rr.reveal_limit,
-                "order": rr.order,
-                "current_player_id": reveal_mod.current_player_id(game),
-                "deadline_in": rr.duration,
-            },
-        })
-        _start_reveal_timeout_task(code)
-    else:
-        game.phase = Phase.VOTING
-        await manager.broadcast_all(code, {
-            "type": "phase_changed", "data": {"phase": "voting"},
-        })
-
 
 # --- WebSocket: хост ---
 
@@ -130,7 +79,7 @@ async def ws_host(websocket: WebSocket, code: str):
         lobby = lobby_store.get(code)
         if lobby:
             lobby.host_connected = False
-        lobby_store.delete_if_empty(code) # у меня еще где-то есть очистка лобби?
+        lobby_store.delete_if_empty(code)
 
         if not lobby_store.get(code):
             t = _reveal_tasks.pop(code, None)
@@ -329,16 +278,6 @@ async def handle_player_message(code: str, player_id: str, msg: dict) -> None:
 
         if result.round_finished:
             await _on_reveal_round_finished(code)
-        elif result.next_player_id:
-            await manager.broadcast_all(code, {
-                "type": "reveal_turn",
-                "data": {
-                    "current_player_id": result.next_player_id,
-                    "deadline_in": game.reveal_round.duration
-                    if game.reveal_round else 0,
-                },
-            })
-            # таймаут-таск сам подхватит новый дедлайн (цикл в run_reveal_timeout)
 
 
 def _start_reveal_timeout_task(code: str) -> None:
@@ -371,3 +310,56 @@ def _start_reveal_timeout_task(code: str) -> None:
         )
     )
     _reveal_tasks[code] = task
+
+
+
+def _card_public(game, player_id: str, card_id: str) -> dict:
+    st = game.players[player_id]
+    for c in st.cards:
+        if c.id == card_id:
+            return {"id": c.id, "field": c.field,
+                    "title": c.title, "description": c.description}
+    return {"id": card_id}
+
+
+async def _on_reveal_round_finished(code: str) -> None:
+    lobby = lobby_store.get(code)
+    if not lobby or not lobby.game:
+        return
+    game = lobby.game
+
+    await manager.broadcast_all(code, {
+        "type": "reveal_round_finished",
+        "data": {
+            "round_number": game.reveal_round.round_number,
+            "rounds_done": game.reveal_rounds_done,
+        },
+    })
+
+    # Дальше два варианта:
+    #  A) авто-старт следующего круга (пока у кого-то есть нераскрытые карты)
+    #  B) ждать команды хоста
+    # Возьмём A с лимитом: пока есть у кого раскрывать — следующий круг.
+    has_unrevealed = any(
+        len(reveal_mod.revealed_for(game, pid)) < len(st.cards)
+        for pid, st in game.players.items()
+    )
+    if has_unrevealed:
+        rr = reveal_mod.start_reveal_round(game, duration=60)
+        await manager.broadcast_all(code, {
+            "type": "reveal_started",
+            "data": {
+                "round_number": rr.round_number,
+                "reveal_limit": rr.reveal_limit,
+                "order": rr.order,
+                "current_player_id": reveal_mod.current_player_id(game),
+                "deadline_in": rr.duration,
+            },
+        })
+        _start_reveal_timeout_task(code)
+    else:
+        game.phase = Phase.VOTING
+        await manager.broadcast_all(code, {
+            "type": "phase_changed", "data": {"phase": "voting"},
+        })
+
